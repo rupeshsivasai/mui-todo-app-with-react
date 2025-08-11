@@ -1,50 +1,131 @@
-import React, { useState} from 'react';
-import './App.css';
-import Button from '@mui/material/Button'; // Importing Material UI Button component
-import TextField from '@mui/material/TextField'; // Importing Material UI TextField component
-import Todo from './Todo'; // Importing the Todo component
+import React, { useState } from "react";
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  Checkbox,
+  IconButton,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import CheckIcon from "@mui/icons-material/Check";
 
-function App() {
+export default function App() {
+  const [todos, setTodos] = useState([]);
+  const [input, setInput] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValue, setEditValue] = useState("");
 
-  const [todos, setTodos] = useState(['Learn React', 'Build a Todo App']);
-  const [input, setInput] = useState(''); 
+  const addTodo = () => {
+    if (input.trim() === "") return;
+    setTodos([...todos, { text: input, completed: false }]);
+    setInput("");
+  };
 
+  const toggleTodo = (index) => {
+    const newTodos = [...todos];
+    newTodos[index].completed = !newTodos[index].completed;
+    setTodos(newTodos);
+  };
 
-  const AddTodo = (event) => {
-    // this will fire when the button is clicked
-    event.preventDefault();  // will stop the page frome refreshing
- 
+  const deleteTodo = (index) => {
+    setTodos(todos.filter((_, i) => i !== index));
+  };
 
-    console.log('👽','Im Working...');
-    setTodos([...todos, input]);
-    setInput('');  // clear the input after Clicking Add TODO button
-  }
+  const startEdit = (index) => {
+    setEditIndex(index);
+    setEditValue(todos[index].text);
+  };
 
-  
+  const saveEdit = (index) => {
+    if (editValue.trim() === "") return;
+    const newTodos = [...todos];
+    newTodos[index].text = editValue;
+    setTodos(newTodos);
+    setEditIndex(null);
+    setEditValue("");
+  };
+
   return (
-    <div className="App">
-      <h1>Welcome To RSS Programmer🚀</h1>
-      <form >
-        {/* <input placeholder="✅ Write Todo" value={input} onChange={event => setInput(event.target.value)} /> */}
-        <TextField id="standard-basic" label="✅ Write Todo" value={input} variant="standard" onChange={event => setInput(event.target.value)} />
-        <Button disabled={!input} type='submit' onClick={AddTodo} variant="contained" color="secondary">Add Todo</Button>
-        {/* <button disabled={!input} onClick={AddTodo} >Add Todo</button> */}
-        
+    <Container maxWidth="sm" sx={{ mt: 5 }}>
+      <Typography variant="h4" gutterBottom align="center">
+        MUI Todo App
+      </Typography>
 
-      </form>
-      <ul>
+      {/* Input + Button Row */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row", // force row
+          flexWrap: "nowrap",   // no wrapping
+          gap: 1,
+          mb: 2,
+        }}
+      >
+        <TextField
+          fullWidth
+          label="Add a task"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && addTodo()}
+        />
+        <Button
+          variant="contained"
+          onClick={addTodo}
+          sx={{ whiteSpace: "nowrap" }}
+        >
+          ADD TODO
+        </Button>
+      </Box>
+
+      {/* Todo List */}
+      <List>
         {todos.map((todo, index) => (
-          <Todo text={todo} />
-          // <li key={index}>
-          //   {todo}
-          // </li>
-          
+          <ListItem
+            key={index}
+            secondaryAction={
+              <>
+                {editIndex === index ? (
+                  <IconButton edge="end" onClick={() => saveEdit(index)}>
+                    <CheckIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton edge="end" onClick={() => startEdit(index)}>
+                    <EditIcon />
+                  </IconButton>
+                )}
+                <IconButton edge="end" onClick={() => deleteTodo(index)}>
+                  <DeleteIcon sx={{ color: "red" }} />
+                </IconButton>
+              </>
+            }
+          >
+            <Checkbox
+              checked={todo.completed}
+              onChange={() => toggleTodo(index)}
+            />
+            {editIndex === index ? (
+              <TextField
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                size="small"
+                autoFocus
+              />
+            ) : (
+              <ListItemText
+                primary={todo.text}
+                sx={{
+                  textDecoration: todo.completed ? "line-through" : "none",
+                }}
+              />
+            )}
+          </ListItem>
         ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-
-
+      </List>
+    </Container>
+  )}
